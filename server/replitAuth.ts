@@ -8,11 +8,9 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+const IS_REPLIT = !!process.env.REPLIT_DOMAINS;
 
-const getOidcConfig = memoize(
+const getOidcConfig = IS_REPLIT ? memoize(
   async () => {
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
@@ -20,7 +18,7 @@ const getOidcConfig = memoize(
     );
   },
   { maxAge: 3600 * 1000 }
-);
+) : async () => null;
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -72,6 +70,14 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Only setup Replit OAuth if on Replit platform
+  if (!IS_REPLIT) {
+    console.log("Not on Replit - skipping Replit OAuth setup");
+    passport.serializeUser((user: Express.User, cb) => cb(null, user));
+    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+    return;
+  }
 
   const config = await getOidcConfig();
 
