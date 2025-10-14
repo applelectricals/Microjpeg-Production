@@ -39,10 +39,9 @@ services:
         generateValue: true
       - key: REDIS_URL
         sync: false
-
 databases:
   - name: microjpeg-db
     databaseName: microjpeg
     user: microjpeg_user
     region: oregon
-    plan: starter
+    plan: free
