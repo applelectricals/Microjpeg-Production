@@ -4,9 +4,13 @@ services:
     runtime: node
     region: oregon
     plan: starter
-    buildCommand: NODE_ENV=development npm install && npm run build
-    startCommand: NODE_ENV=production npm start
+    buildCommand: npm run build
+    startCommand: npm start
     envVars:
+      - key: NPM_CONFIG_PRODUCTION
+        value: false
+      - key: NODE_ENV
+        value: production
       - key: PORT
         value: 10000
       - key: DATABASE_URL
